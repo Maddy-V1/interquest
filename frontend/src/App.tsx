@@ -1,11 +1,19 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Login from './components/Login'
+import Home from './components/Home'
 import Round1 from './components/Round1'
+import Round2 from './components/Round2'
+import Round3 from './components/Round3'
 import Round1Quiz from './components/Round1Quiz'
+import Round2Quiz from './components/Round2Quiz'
+import Round3Quiz from './components/Round3Quiz'
+import QuizResults from './components/QuizResults'
 import AdminLogin from './components/AdminLogin'
 import AdminDashboard from './components/AdminDashboard'
 import QuestionManagement from './components/QuestionManagement'
+import RoundApproval from './components/RoundApproval'
 import ProtectedRoute from './components/ProtectedRoute'
+import UserProtectedRoute from './components/UserProtectedRoute'
 
 function App() {
   return (
@@ -13,8 +21,14 @@ function App() {
       <Routes>
         {/* Main App Routes */}
         <Route path="/" element={<Login />} />
-        <Route path="/round1" element={<Round1 />} />
-        <Route path="/round1-quiz" element={<Round1Quiz />} />
+        <Route path="/home" element={<UserProtectedRoute><Home /></UserProtectedRoute>} />
+        <Route path="/round1" element={<UserProtectedRoute><Round1 /></UserProtectedRoute>} />
+        <Route path="/round2" element={<UserProtectedRoute><Round2 /></UserProtectedRoute>} />
+        <Route path="/round3" element={<UserProtectedRoute><Round3 /></UserProtectedRoute>} />
+        <Route path="/round1-quiz" element={<UserProtectedRoute><Round1Quiz /></UserProtectedRoute>} />
+        <Route path="/round2-quiz" element={<UserProtectedRoute><Round2Quiz /></UserProtectedRoute>} />
+        <Route path="/round3-quiz" element={<UserProtectedRoute><Round3Quiz /></UserProtectedRoute>} />
+        <Route path="/quiz-results" element={<UserProtectedRoute><QuizResults /></UserProtectedRoute>} />
         
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLogin />} />
@@ -31,6 +45,14 @@ function App() {
           element={
             <ProtectedRoute>
               <QuestionManagement />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/admin/round-approvals" 
+          element={
+            <ProtectedRoute>
+              <RoundApproval />
             </ProtectedRoute>
           } 
         />

@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { authUtils } from '../lib/auth'
 
 function AdminLogin() {
   const [email, setEmail] = useState('')
@@ -7,6 +8,13 @@ function AdminLogin() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const navigate = useNavigate()
+
+  // Check if admin is already logged in
+  useEffect(() => {
+    if (authUtils.isAdminLoggedIn()) {
+      navigate('/admin/dashboard')
+    }
+  }, [navigate])
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,9 +33,8 @@ function AdminLogin() {
       const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD
 
       if (email.trim() === adminEmail && password === adminPassword) {
-        // Store admin session
-        sessionStorage.setItem('adminAuthenticated', 'true')
-        sessionStorage.setItem('adminLoginTime', new Date().toISOString())
+        // Store admin session in localStorage
+        authUtils.saveAdminSession()
         
         // Navigate to admin dashboard
         navigate('/admin/dashboard')

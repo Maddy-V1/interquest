@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import UserService from '../lib/userService'
+import { authUtils } from '../lib/auth'
 
 function Login() {
   const [firstName, setFirstName] = useState('')
@@ -8,6 +9,13 @@ function Login() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const navigate = useNavigate()
+
+  // Check if user is already logged in
+  useEffect(() => {
+    if (authUtils.isUserLoggedIn()) {
+      navigate('/home')
+    }
+  }, [navigate])
 
   const handleProceedToQuiz = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -43,15 +51,16 @@ function Login() {
         return
       }
 
-      // Navigate to Round 1 with user data and session ID
-      navigate('/round1', { 
-        state: { 
-          firstName: firstName.trim(), 
-          lastName: lastName.trim(),
-          userId: user.id,
-          sessionId: session.id
-        } 
+      // Save user session to localStorage
+      authUtils.saveUserSession({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        userId: user.id,
+        loginTime: new Date().toISOString()
       })
+
+      // Navigate to Home page
+      navigate('/home')
     } catch (error) {
       console.error('Login error:', error)
       setError('An error occurred. Please try again.')

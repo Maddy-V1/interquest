@@ -173,21 +173,27 @@ export class UserService {
         return true; // Everyone can access Round 1
       }
 
-      // Check if user completed the previous round
-      const { data: previousRound, error } = await supabase
-        .from('quiz_sessions')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('round_number', roundNumber - 1)
-        .eq('status', 'completed')
+      // Get user approval status
+      const { data: user, error: userError } = await supabase
+        .from('users')
+        .select('round2_approved, round3_approved')
+        .eq('id', userId)
         .single()
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error checking round access:', error)
+      if (userError) {
+        console.error('Error fetching user approval status:', userError)
         return false
       }
 
-      return !!previousRound
+      // For Round 2 and 3, only check admin approval
+      if (roundNumber === 2) {
+        return user.round2_approved === true
+      }
+      if (roundNumber === 3) {
+        return user.round3_approved === true
+      }
+
+      return false
     } catch (error) {
       console.error('UserService.canAccessRound error:', error)
       return false

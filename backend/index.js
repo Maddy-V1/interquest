@@ -101,6 +101,26 @@ app.get('/api/leaderboard', async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const roundNumber = req.query.round ? parseInt(req.query.round) : null;
     
+    // Handle Round 3 using the new view
+    if (roundNumber === 3) {
+      const { data: leaderboard, error } = await supabase
+        .from('round3_leaderboard_view')
+        .select('*')
+        .limit(limit);
+      
+      if (error) {
+        console.error('Error fetching round 3 leaderboard:', error);
+        throw new Error('Failed to fetch round 3 leaderboard');
+      }
+      
+      return res.json({ 
+        success: true, 
+        leaderboard: leaderboard || [],
+        roundNumber,
+        message: `Round ${roundNumber} leaderboard fetched successfully`
+      });
+    }
+    
     const leaderboard = await UserService.getLeaderboard(roundNumber, limit);
     
     res.json({ 
@@ -113,6 +133,49 @@ app.get('/api/leaderboard', async (req, res) => {
     console.error('GET /api/leaderboard error:', error);
     res.status(500).json({ 
       error: 'Failed to fetch leaderboard',
+      message: error.message 
+    });
+  }
+});
+
+// Get round-specific leaderboard using views
+app.get('/api/leaderboard/round/:roundNumber', async (req, res) => {
+  try {
+    const { roundNumber } = req.params;
+    const { limit = 50 } = req.query;
+    
+    let viewName;
+    if (roundNumber === '1') {
+      viewName = 'overall_leaderboard_view';
+    } else if (roundNumber === '2') {
+      viewName = 'round_leaderboard_view';
+    } else if (roundNumber === '3') {
+      viewName = 'round3_leaderboard_view';
+    } else {
+      return res.status(400).json({ 
+        error: 'Invalid round number. Use 1, 2, or 3.' 
+      });
+    }
+    
+    const { data: leaderboard, error } = await supabase
+      .from(viewName)
+      .select('*')
+      .limit(parseInt(limit));
+    
+    if (error) {
+      console.error('Error fetching round leaderboard:', error);
+      throw new Error('Failed to fetch round leaderboard');
+    }
+    
+    res.json({ 
+      success: true, 
+      leaderboard: leaderboard || [],
+      message: `Round ${roundNumber} leaderboard fetched successfully` 
+    });
+  } catch (error) {
+    console.error('GET /api/leaderboard/round/:roundNumber error:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch round leaderboard',
       message: error.message 
     });
   }
@@ -584,6 +647,277 @@ app.get('/api/users/:id/stats', async (req, res) => {
     console.error('GET /api/users/:id/stats error:', error);
     res.status(500).json({ 
       error: 'Failed to fetch user stats',
+      message: error.message 
+    });
+  }
+});
+
+// Save quiz answer
+app.post('/api/quiz-answers', async (req, res) => {
+  try {
+    const { session_id, question_id, selected_answer, correct_answer, is_correct } = req.body;
+    
+    if (!session_id || !question_id || !selected_answer || !correct_answer) {
+      return res.status(400).json({ 
+        error: 'Session ID, question ID, selected answer, and correct answer are required' 
+      });
+    }
+
+    const answerData = {
+      session_id,
+      question_id,
+      selected_answer,
+      correct_answer,
+      is_correct: is_correct || false,
+      answered_at: new Date().toISOString(),
+      created_at: new Date().toISOString()
+    };
+    
+    const { data: answer, error } = await supabase
+      .from('quiz_answers')
+      .insert([answerData])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error saving quiz answer:', error);
+      throw new Error('Failed to save quiz answer');
+    }
+    
+    res.status(201).json({ 
+      success: true, 
+      answer,
+      message: 'Quiz answer saved successfully' 
+    });
+  } catch (error) {
+    console.error('POST /api/quiz-answers error:', error);
+    res.status(500).json({ 
+      error: 'Failed to save quiz answer',
+      message: error.message 
+    });
+  }
+});
+
+// Get all users for admin round approval
+app.get('/api/admin/users', async (req, res) => {
+  try {
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching users:', error);
+      throw new Error('Failed to fetch users');
+    }
+    
+    res.json({ 
+      success: true, 
+      users: users || [],
+      message: 'Users fetched successfully' 
+    });
+  } catch (error) {
+    console.error('GET /api/admin/users error:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch users',
+      message: error.message 
+    });
+  }
+});
+
+// Update user round approvals
+app.put('/api/admin/users/:id/round-approval', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { round2_approved, round3_approved } = req.body;
+    
+    const updateData = {
+      updated_at: new Date().toISOString()
+    };
+    
+    if (round2_approved !== undefined) {
+      updateData.round2_approved = round2_approved;
+    }
+    if (round3_approved !== undefined) {
+      updateData.round3_approved = round3_approved;
+    }
+    
+    const { data: user, error } = await supabase
+      .from('users')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error updating user round approval:', error);
+      throw new Error('Failed to update user round approval');
+    }
+    
+    if (!user) {
+      return res.status(404).json({ 
+        error: 'User not found' 
+      });
+    }
+    
+    res.json({ 
+      success: true, 
+      user,
+      message: 'User round approval updated successfully' 
+    });
+  } catch (error) {
+    console.error('PUT /api/admin/users/:id/round-approval error:', error);
+    res.status(500).json({ 
+      error: 'Failed to update user round approval',
+      message: error.message 
+    });
+  }
+});
+
+// Bulk update round approvals
+app.post('/api/admin/round-approvals', async (req, res) => {
+  try {
+    const { round2_approvals, round3_approvals } = req.body;
+    
+    const updates = [];
+    
+    // Process Round 2 approvals
+    if (round2_approvals && Array.isArray(round2_approvals)) {
+      for (const approval of round2_approvals) {
+        updates.push(
+          supabase
+            .from('users')
+            .update({ 
+              round2_approved: approval.approved,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', approval.userId)
+        );
+      }
+    }
+    
+    // Process Round 3 approvals
+    if (round3_approvals && Array.isArray(round3_approvals)) {
+      for (const approval of round3_approvals) {
+        updates.push(
+          supabase
+            .from('users')
+            .update({ 
+              round3_approved: approval.approved,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', approval.userId)
+        );
+      }
+    }
+    
+    // Execute all updates
+    const results = await Promise.all(updates);
+    
+    // Check for errors
+    const errors = results.filter(result => result.error);
+    if (errors.length > 0) {
+      console.error('Some updates failed:', errors);
+      throw new Error('Some updates failed');
+    }
+    
+    res.json({ 
+      success: true, 
+      message: 'Round approvals updated successfully' 
+    });
+  } catch (error) {
+    console.error('POST /api/admin/round-approvals error:', error);
+    res.status(500).json({ 
+      error: 'Failed to update round approvals',
+      message: error.message 
+    });
+  }
+});
+
+// Mark Round 3 winner
+app.post('/api/admin/mark-winner', async (req, res) => {
+  try {
+    const { userId } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({ 
+        error: 'User ID is required' 
+      });
+    }
+
+    // First, clear all existing winners
+    await supabase
+      .from('users')
+      .update({ winner: false })
+      .neq('id', '00000000-0000-0000-0000-000000000000'); // Update all users
+
+    // Mark the specified user as winner
+    const { data: user, error } = await supabase
+      .from('users')
+      .update({ 
+        winner: true,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error marking winner:', error);
+      throw new Error('Failed to mark winner');
+    }
+    
+    if (!user) {
+      return res.status(404).json({ 
+        error: 'User not found' 
+      });
+    }
+    
+    res.json({ 
+      success: true, 
+      user,
+      message: 'Winner marked successfully' 
+    });
+  } catch (error) {
+    console.error('POST /api/admin/mark-winner error:', error);
+    res.status(500).json({ 
+      error: 'Failed to mark winner',
+      message: error.message 
+    });
+  }
+});
+
+// Get user data
+app.get('/api/users/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    
+    if (error) {
+      console.error('Error fetching user:', error);
+      throw new Error('Failed to fetch user data');
+    }
+    
+    if (!user) {
+      return res.status(404).json({ 
+        error: 'User not found' 
+      });
+    }
+    
+    res.json({ 
+      success: true, 
+      user,
+      message: 'User data fetched successfully' 
+    });
+  } catch (error) {
+    console.error('GET /api/users/:userId error:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch user data',
       message: error.message 
     });
   }

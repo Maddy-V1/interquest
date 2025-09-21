@@ -9,6 +9,9 @@ CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
+    round2_approved BOOLEAN DEFAULT FALSE,
+    round3_approved BOOLEAN DEFAULT FALSE,
+    winner BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     
@@ -43,7 +46,7 @@ CREATE TABLE questions (
     round_number INTEGER NOT NULL DEFAULT 1,
     difficulty VARCHAR(20) DEFAULT 'medium' CHECK (difficulty IN ('easy', 'medium', 'hard')),
     category VARCHAR(50) DEFAULT 'general',
-    points INTEGER NOT NULL DEFAULT 100,
+    points INTEGER NOT NULL DEFAULT 1,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -96,27 +99,27 @@ CREATE TRIGGER update_questions_updated_at
 
 -- Insert sample questions for Round 1 (General Knowledge)
 INSERT INTO questions (question_text, option_a, option_b, option_c, option_d, correct_answer, round_number, category, points) VALUES
-('What is the capital city of France?', 'London', 'Berlin', 'Paris', 'Madrid', 'C', 1, 'geography', 100),
-('Which planet is known as the Red Planet?', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'B', 1, 'science', 100),
-('Who painted the Mona Lisa?', 'Pablo Picasso', 'Vincent van Gogh', 'Leonardo da Vinci', 'Michelangelo', 'C', 1, 'art', 100),
-('What is the largest ocean on Earth?', 'Atlantic Ocean', 'Indian Ocean', 'Arctic Ocean', 'Pacific Ocean', 'D', 1, 'geography', 100),
-('In which year did World War II end?', '1944', '1945', '1946', '1947', 'B', 1, 'history', 100);
+('What is the capital city of France?', 'London', 'Berlin', 'Paris', 'Madrid', 'C', 1, 'geography', 1),
+('Which planet is known as the Red Planet?', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'B', 1, 'science', 1),
+('Who painted the Mona Lisa?', 'Pablo Picasso', 'Vincent van Gogh', 'Leonardo da Vinci', 'Michelangelo', 'C', 1, 'art', 1),
+('What is the largest ocean on Earth?', 'Atlantic Ocean', 'Indian Ocean', 'Arctic Ocean', 'Pacific Ocean', 'D', 1, 'geography', 1),
+('In which year did World War II end?', '1944', '1945', '1946', '1947', 'B', 1, 'history', 1);
 
 -- Insert sample questions for Round 2 (Science & Technology)
 INSERT INTO questions (question_text, option_a, option_b, option_c, option_d, correct_answer, round_number, category, points) VALUES
-('What is the chemical symbol for gold?', 'Go', 'Gd', 'Au', 'Ag', 'C', 2, 'science', 150),
-('Who developed the theory of relativity?', 'Isaac Newton', 'Albert Einstein', 'Galileo Galilei', 'Stephen Hawking', 'B', 2, 'science', 150),
-('What does CPU stand for in computing?', 'Central Processing Unit', 'Computer Personal Unit', 'Central Program Unit', 'Computer Processing Unit', 'A', 2, 'technology', 150),
-('What is the speed of light in vacuum?', '300,000 km/s', '150,000 km/s', '450,000 km/s', '600,000 km/s', 'A', 2, 'science', 150),
-('Which programming language was developed by Guido van Rossum?', 'Java', 'Python', 'C++', 'JavaScript', 'B', 2, 'technology', 150);
+('What is the chemical symbol for gold?', 'Go', 'Gd', 'Au', 'Ag', 'C', 2, 'science', 1),
+('Who developed the theory of relativity?', 'Isaac Newton', 'Albert Einstein', 'Galileo Galilei', 'Stephen Hawking', 'B', 2, 'science', 1),
+('What does CPU stand for in computing?', 'Central Processing Unit', 'Computer Personal Unit', 'Central Program Unit', 'Computer Processing Unit', 'A', 2, 'technology', 1),
+('What is the speed of light in vacuum?', '300,000 km/s', '150,000 km/s', '450,000 km/s', '600,000 km/s', 'A', 2, 'science', 1),
+('Which programming language was developed by Guido van Rossum?', 'Java', 'Python', 'C++', 'JavaScript', 'B', 2, 'technology', 1);
 
 -- Insert sample questions for Round 3 (Advanced Knowledge)
 INSERT INTO questions (question_text, option_a, option_b, option_c, option_d, correct_answer, round_number, category, points) VALUES
-('What is the smallest unit of matter?', 'Molecule', 'Atom', 'Electron', 'Proton', 'B', 3, 'science', 200),
-('Who wrote the novel "1984"?', 'Aldous Huxley', 'Ray Bradbury', 'George Orwell', 'H.G. Wells', 'C', 3, 'literature', 200),
-('What is the mathematical constant e approximately equal to?', '2.718', '3.142', '1.618', '2.236', 'A', 3, 'mathematics', 200),
-('Which ancient wonder of the world was located in Alexandria?', 'Hanging Gardens', 'Colossus of Rhodes', 'Lighthouse of Alexandria', 'Temple of Artemis', 'C', 3, 'history', 200),
-('What is the process by which plants convert sunlight into energy?', 'Respiration', 'Photosynthesis', 'Transpiration', 'Germination', 'B', 3, 'science', 200);
+('What is the smallest unit of matter?', 'Molecule', 'Atom', 'Electron', 'Proton', 'B', 3, 'science', 1),
+('Who wrote the novel "1984"?', 'Aldous Huxley', 'Ray Bradbury', 'George Orwell', 'H.G. Wells', 'C', 3, 'literature', 1),
+('What is the mathematical constant e approximately equal to?', '2.718', '3.142', '1.618', '2.236', 'A', 3, 'mathematics', 1),
+('Which ancient wonder of the world was located in Alexandria?', 'Hanging Gardens', 'Colossus of Rhodes', 'Lighthouse of Alexandria', 'Temple of Artemis', 'C', 3, 'history', 1),
+('What is the process by which plants convert sunlight into energy?', 'Respiration', 'Photosynthesis', 'Transpiration', 'Germination', 'B', 3, 'science', 1);
 
 -- Row Level Security (RLS) policies
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
@@ -168,42 +171,40 @@ WHERE qs.status = 'completed'
     AND qs.score IS NOT NULL
 ORDER BY qs.score DESC, qs.completed_at ASC;
 
--- Create overall leaderboard view (sum of all rounds)
+-- Create Round 1 leaderboard view (using overall_leaderboard_view)
 CREATE OR REPLACE VIEW overall_leaderboard_view AS
 SELECT 
     u.id as user_id,
     u.first_name,
     u.last_name,
     CONCAT(u.first_name, ' ', u.last_name) as full_name,
-    COUNT(qs.id) as completed_rounds,
-    SUM(qs.score) as total_score,
-    AVG(qs.score) as average_score,
-    MAX(qs.score) as best_score,
-    MIN(qs.completed_at) as first_completion,
-    MAX(qs.completed_at) as last_completion,
-    ROW_NUMBER() OVER (ORDER BY SUM(qs.score) DESC, MAX(qs.completed_at) ASC) as rank
+    qs.score as total_score,
+    qs.total_questions,
+    qs.correct_answers,
+    qs.completed_at,
+    ROW_NUMBER() OVER (ORDER BY qs.score DESC, qs.completed_at ASC) as rank
 FROM users u
 JOIN quiz_sessions qs ON u.id = qs.user_id
 WHERE qs.status = 'completed' 
     AND qs.score IS NOT NULL
-GROUP BY u.id, u.first_name, u.last_name
-ORDER BY SUM(qs.score) DESC, MAX(qs.completed_at) ASC;
+    AND qs.round_number = 1
+ORDER BY qs.score DESC, qs.completed_at ASC;
 
--- Create round-specific leaderboard view
+-- Create Round 2 leaderboard view (using round_leaderboard_view)
 CREATE OR REPLACE VIEW round_leaderboard_view AS
 SELECT 
-    qs.round_number,
     u.id as user_id,
     u.first_name,
     u.last_name,
     CONCAT(u.first_name, ' ', u.last_name) as full_name,
-    qs.score,
+    qs.score as total_score,
     qs.total_questions,
     qs.correct_answers,
     qs.completed_at,
-    ROW_NUMBER() OVER (PARTITION BY qs.round_number ORDER BY qs.score DESC, qs.completed_at ASC) as rank
-FROM quiz_sessions qs
-JOIN users u ON qs.user_id = u.id
+    ROW_NUMBER() OVER (ORDER BY qs.score DESC, qs.completed_at ASC) as rank
+FROM users u
+JOIN quiz_sessions qs ON u.id = qs.user_id
 WHERE qs.status = 'completed' 
     AND qs.score IS NOT NULL
-ORDER BY qs.round_number, qs.score DESC, qs.completed_at ASC;
+    AND qs.round_number = 2
+ORDER BY qs.score DESC, qs.completed_at ASC;

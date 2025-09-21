@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { authUtils } from '../lib/auth'
 
 function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -10,14 +11,20 @@ function AdminDashboard() {
     round3Completed: 0,
     avgScore: 0
   })
-  const [leaderboard, setLeaderboard] = useState([])
+  const [round1Leaderboard, setRound1Leaderboard] = useState([])
+  const [round2Leaderboard, setRound2Leaderboard] = useState([])
+  const [round3Leaderboard, setRound3Leaderboard] = useState([])
+  const [showRound2Approval, setShowRound2Approval] = useState(false)
+  const [showRound3Approval, setShowRound3Approval] = useState(false)
+  const [selectedForRound2, setSelectedForRound2] = useState<string[]>([])
+  const [selectedForRound3, setSelectedForRound3] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isApproving, setIsApproving] = useState(false)
   const navigate = useNavigate()
 
   // Check admin authentication
   useEffect(() => {
-    const isAuthenticated = sessionStorage.getItem('adminAuthenticated')
-    if (!isAuthenticated) {
+    if (!authUtils.isAdminLoggedIn()) {
       navigate('/admin/login')
       return
     }
@@ -39,15 +46,14 @@ function AdminDashboard() {
         setStats(statsData.stats)
       }
       
-      // Fetch overall leaderboard
-      const leaderboardResponse = await fetch('/api/leaderboard?limit=10')
-      if (leaderboardResponse.ok) {
-        const leaderboardData = await leaderboardResponse.json()
-        setLeaderboard(leaderboardData.leaderboard || [])
-      }
+      // Fetch all leaderboards
+      await Promise.all([
+        loadRound1Leaderboard(),
+        loadRound2Leaderboard(),
+        loadRound3Leaderboard()
+      ])
     } catch (error) {
       console.error('Error loading dashboard data:', error)
-      // Fallback to mock data if API fails
       setStats({
         totalUsers: 0,
         totalSessions: 0,
@@ -61,16 +67,133 @@ function AdminDashboard() {
     }
   }
 
+  const loadRound1Leaderboard = async () => {
+    try {
+      const response = await fetch('/api/leaderboard/round/1?limit=50')
+      if (response.ok) {
+        const data = await response.json()
+        setRound1Leaderboard(data.leaderboard || [])
+      }
+    } catch (error) {
+      console.error('Error loading Round 1 leaderboard:', error)
+    }
+  }
+
+  const loadRound2Leaderboard = async () => {
+    try {
+      const response = await fetch('/api/leaderboard/round/2?limit=50')
+      if (response.ok) {
+        const data = await response.json()
+        setRound2Leaderboard(data.leaderboard || [])
+      }
+    } catch (error) {
+      console.error('Error loading Round 2 leaderboard:', error)
+    }
+  }
+
+  const loadRound3Leaderboard = async () => {
+    try {
+      const response = await fetch('/api/leaderboard/round/3?limit=50')
+      if (response.ok) {
+        const data = await response.json()
+        setRound3Leaderboard(data.leaderboard || [])
+      }
+    } catch (error) {
+      console.error('Error loading Round 3 leaderboard:', error)
+    }
+  }
+
   const handleLogout = () => {
-    sessionStorage.removeItem('adminAuthenticated')
-    sessionStorage.removeItem('adminLoginTime')
+    authUtils.clearAdminSession()
     navigate('/admin/login')
   }
 
-  const handleStartRound = (roundNumber: number) => {
-    // This is where you'll implement round control logic
-    console.log(`Starting Round ${roundNumber}`)
-    alert(`Round ${roundNumber} started! (This will be replaced with actual functionality)`)
+  const handleShowRound2Approval = () => {
+    setShowRound2Approval(true)
+    setSelectedForRound2([])
+  }
+
+  const handleShowRound3Approval = () => {
+    setShowRound3Approval(true)
+    setSelectedForRound3([])
+  }
+
+  const handleUserSelection = (userId: string, roundNumber: number) => {
+    if (roundNumber === 2) {
+      setSelectedForRound2(prev => 
+        prev.includes(userId) 
+          ? prev.filter(id => id !== userId)
+          : [...prev, userId]
+      )
+    } else if (roundNumber === 3) {
+      setSelectedForRound3(prev => 
+        prev.includes(userId) 
+          ? prev.filter(id => id !== userId)
+          : [...prev, userId]
+      )
+    }
+  }
+
+  const handleApproveUsers = async (roundNumber: number) => {
+    try {
+      setIsApproving(true)
+      const selectedUsers = roundNumber === 2 ? selectedForRound2 : selectedForRound3
+      
+      if (selectedUsers.length === 0) {
+        alert('Please select at least one user to approve.')
+        return
+      }
+
+      // Approve selected users
+      const approvals = selectedUsers.map(userId => ({
+        userId,
+        approved: true
+      }))
+
+      const approvalData = roundNumber === 2 
+        ? { round2_approvals: approvals }
+        : { round3_approvals: approvals }
+
+      const response = await fetch('/api/admin/round-approvals', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(approvalData)
+      })
+
+      if (response.ok) {
+        alert(`Successfully approved ${selectedUsers.length} users for Round ${roundNumber}!`)
+        
+        // Refresh leaderboards
+        if (roundNumber === 2) {
+          await loadRound2Leaderboard()
+          setShowRound2Approval(false)
+          setSelectedForRound2([])
+        } else {
+          await loadRound3Leaderboard()
+          setShowRound3Approval(false)
+          setSelectedForRound3([])
+        }
+      } else {
+        throw new Error('Failed to approve users')
+      }
+    } catch (error) {
+      console.error('Error approving users:', error)
+      alert('Failed to approve users. Please try again.')
+    } finally {
+      setIsApproving(false)
+    }
+  }
+
+  const handleCancelApproval = (roundNumber: number) => {
+    if (roundNumber === 2) {
+      setShowRound2Approval(false)
+      setSelectedForRound2([])
+    } else {
+      setShowRound3Approval(false)
+      setSelectedForRound3([])
+    }
   }
 
   if (isLoading) {
@@ -233,46 +356,209 @@ function AdminDashboard() {
           </div>
         </div>
 
-        {/* Leaderboard */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Top Performers</h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rank</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Score</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rounds</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {leaderboard.length > 0 ? (
-                  leaderboard.map((user: any, index) => (
-                    <tr key={index}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        #{index + 1}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {user.full_name || `${user.first_name} ${user.last_name}`}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {user.total_score || user.score || 0}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {user.completed_rounds || 1}
-                      </td>
-                    </tr>
+        {/* Round Leaderboards */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Round 1 Leaderboard */}
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-blue-600">Round 1 Leaderboard</h2>
+              <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                {round1Leaderboard.length} participants
+              </div>
+            </div>
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {round1Leaderboard.length > 0 ? (
+                round1Leaderboard.map((user: any, index) => (
+                  <div key={user.user_id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-center w-8 h-8 bg-blue-500 text-white rounded-full text-sm font-bold">
+                        {index + 1}
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">{user.full_name}</p>
+                        <p className="text-sm text-gray-600">{user.correct_answers}/{user.total_questions} correct</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-blue-600">{user.total_score}</p>
+                      <p className="text-xs text-gray-500">points</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <p>No participants yet</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Round 2 Leaderboard */}
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-green-600">Round 2 Leaderboard</h2>
+              <div className="flex items-center gap-2">
+                <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                  {round2Leaderboard.length} approved
+                </div>
+                <button
+                  onClick={handleShowRound2Approval}
+                  className="bg-green-500 text-white px-3 py-1 rounded-lg text-sm font-medium hover:bg-green-600 transition-colors"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+            
+            {showRound2Approval ? (
+              <div className="space-y-4">
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-green-800 mb-3">Select Round 1 participants for Round 2:</h3>
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {round1Leaderboard.map((user: any) => (
+                      <label key={user.user_id} className="flex items-center gap-3 p-2 hover:bg-green-100 rounded cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedForRound2.includes(user.user_id)}
+                          onChange={() => handleUserSelection(user.user_id, 2)}
+                          className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
+                        />
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900">{user.full_name}</p>
+                          <p className="text-sm text-gray-600">Score: {user.total_score}</p>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <button
+                      onClick={() => handleApproveUsers(2)}
+                      disabled={isApproving || selectedForRound2.length === 0}
+                      className="bg-green-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isApproving ? 'Approving...' : `Approve ${selectedForRound2.length} Users`}
+                    </button>
+                    <button
+                      onClick={() => handleCancelApproval(2)}
+                      className="bg-gray-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-600"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {round2Leaderboard.length > 0 ? (
+                  round2Leaderboard.map((user: any, index) => (
+                    <div key={user.user_id} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center w-8 h-8 bg-green-500 text-white rounded-full text-sm font-bold">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">{user.full_name}</p>
+                          <p className="text-sm text-gray-600">{user.correct_answers}/{user.total_questions} correct</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-green-600">{user.total_score}</p>
+                        <p className="text-xs text-gray-500">points</p>
+                      </div>
+                    </div>
                   ))
                 ) : (
-                  <tr>
-                    <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
-                      No data available yet
-                    </td>
-                  </tr>
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No approved participants yet</p>
+                    <p className="text-sm">Click "Add" to approve users</p>
+                  </div>
                 )}
-              </tbody>
-            </table>
+              </div>
+            )}
+          </div>
+
+          {/* Round 3 Leaderboard */}
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-purple-600">Round 3 Leaderboard</h2>
+              <div className="flex items-center gap-2">
+                <div className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
+                  {round3Leaderboard.length} approved
+                </div>
+                <button
+                  onClick={handleShowRound3Approval}
+                  className="bg-purple-500 text-white px-3 py-1 rounded-lg text-sm font-medium hover:bg-purple-600 transition-colors"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+            
+            {showRound3Approval ? (
+              <div className="space-y-4">
+                <div className="bg-purple-50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-purple-800 mb-3">Select Round 2 participants for Round 3:</h3>
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {round2Leaderboard.map((user: any) => (
+                      <label key={user.user_id} className="flex items-center gap-3 p-2 hover:bg-purple-100 rounded cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedForRound3.includes(user.user_id)}
+                          onChange={() => handleUserSelection(user.user_id, 3)}
+                          className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                        />
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900">{user.full_name}</p>
+                          <p className="text-sm text-gray-600">Score: {user.total_score}</p>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <button
+                      onClick={() => handleApproveUsers(3)}
+                      disabled={isApproving || selectedForRound3.length === 0}
+                      className="bg-purple-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isApproving ? 'Approving...' : `Approve ${selectedForRound3.length} Users`}
+                    </button>
+                    <button
+                      onClick={() => handleCancelApproval(3)}
+                      className="bg-gray-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-600"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {round3Leaderboard.length > 0 ? (
+                  round3Leaderboard.map((user: any, index) => (
+                    <div key={user.user_id} className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center w-8 h-8 bg-purple-500 text-white rounded-full text-sm font-bold">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">{user.full_name}</p>
+                          <p className="text-sm text-gray-600">{user.correct_answers}/{user.total_questions} correct</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-purple-600">{user.total_score}</p>
+                        <p className="text-xs text-gray-500">points</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No approved participants yet</p>
+                    <p className="text-sm">Click "Add" to approve users</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
