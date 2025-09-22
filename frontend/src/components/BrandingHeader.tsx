@@ -1,5 +1,3 @@
-import React from 'react'
-
 interface BrandingHeaderProps {
   title?: string
   subtitle?: string

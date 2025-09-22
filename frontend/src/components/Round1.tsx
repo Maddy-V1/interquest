@@ -5,9 +5,9 @@ import { authUtils } from '../lib/auth'
 
 function Round1() {
   const navigate = useNavigate()
-  const [userSession, setUserSession] = useState(authUtils.getUserSession())
+  const [userSession] = useState(authUtils.getUserSession())
 
-  const [sessionId, setSessionId] = useState('')
+
   const [isLoading, setIsLoading] = useState(false)
   const [isCompleted, setIsCompleted] = useState(false)
   const [roundScore, setRoundScore] = useState(0)
@@ -102,8 +102,6 @@ function Round1() {
         return
       }
 
-      setSessionId(session.id!)
-      
       // Navigate to quiz with session ID
       navigate('/round1-quiz', { 
         state: { 

@@ -13,7 +13,7 @@ interface LocationState {
 function Round3() {
   const location = useLocation()
   const navigate = useNavigate()
-  const [userSession, setUserSession] = useState(authUtils.getUserSession())
+  const [userSession] = useState(authUtils.getUserSession())
   
   // Extract user data for easier access
   const { firstName, lastName, userId } = (location.state as LocationState) || userSession || { 

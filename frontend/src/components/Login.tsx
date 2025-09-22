@@ -55,7 +55,7 @@ function Login() {
       authUtils.saveUserSession({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        userId: user.id,
+        userId: user.id!,
         loginTime: new Date().toISOString()
       })
 

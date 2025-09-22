@@ -35,7 +35,7 @@ function Quiz({ roundNumber }: QuizProps) {
   const location = useLocation()
   const navigate = useNavigate()
   const { sessionId } = (location.state as LocationState) || { sessionId: '' }
-  const [userSession, setUserSession] = useState(authUtils.getUserSession())
+  const [userSession] = useState(authUtils.getUserSession())
 
   const [questions, setQuestions] = useState<Question[]>([])
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)

@@ -20,7 +20,7 @@ function QuizResults() {
     correctAnswers: 0,
     totalQuestions: 0
   }
-  const [userSession, setUserSession] = useState(authUtils.getUserSession())
+  const [userSession] = useState(authUtils.getUserSession())
   const [userApprovals, setUserApprovals] = useState({
     round2_approved: false,
     round3_approved: false

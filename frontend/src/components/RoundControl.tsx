@@ -29,9 +29,9 @@ function RoundControl({ roundNumber, onStatusChange }: RoundControlProps) {
     try {
       setIsLoading(true)
       const newStatus = roundStatus === 'active' ? 'stopped' : 'active'
-      
+
       console.log(`Attempting to ${newStatus} Round ${roundNumber}`)
-      
+
       const response = await fetch(`/api/admin/round-control/${roundNumber}`, {
         method: 'POST',
         headers: {
@@ -53,7 +53,7 @@ function RoundControl({ roundNumber, onStatusChange }: RoundControlProps) {
       }
     } catch (error) {
       console.error('Error toggling round:', error)
-      alert(`Failed to update round status: ${error.message}. Check console for details.`)
+      alert(`Failed to update round status: ${(error as Error).message}. Check console for details.`)
     } finally {
       setIsLoading(false)
     }
@@ -63,30 +63,28 @@ function RoundControl({ roundNumber, onStatusChange }: RoundControlProps) {
     <div className="bg-white rounded-xl shadow-lg p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl font-bold text-gray-900">Round {roundNumber} Control</h3>
-        <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-          roundStatus === 'active' 
-            ? 'bg-green-100 text-green-800' 
-            : 'bg-red-100 text-red-800'
-        }`}>
+        <div className={`px-3 py-1 rounded-full text-sm font-medium ${roundStatus === 'active'
+          ? 'bg-green-100 text-green-800'
+          : 'bg-red-100 text-red-800'
+          }`}>
           {roundStatus === 'active' ? '🟢 Active' : '🔴 Stopped'}
         </div>
       </div>
-      
+
       <p className="text-gray-600 mb-4">
-        {roundStatus === 'active' 
+        {roundStatus === 'active'
           ? 'Participants can start and submit Round 1 quizzes.'
           : 'Round 1 is currently stopped. Participants cannot start or submit quizzes.'
         }
       </p>
-      
+
       <button
         onClick={handleToggleRound}
         disabled={isLoading}
-        className={`w-full px-4 py-3 rounded-lg font-semibold transition-colors ${
-          roundStatus === 'active'
-            ? 'bg-red-500 text-white hover:bg-red-600'
-            : 'bg-green-500 text-white hover:bg-green-600'
-        } disabled:opacity-50 disabled:cursor-not-allowed`}
+        className={`w-full px-4 py-3 rounded-lg font-semibold transition-colors ${roundStatus === 'active'
+          ? 'bg-red-500 text-white hover:bg-red-600'
+          : 'bg-green-500 text-white hover:bg-green-600'
+          } disabled:opacity-50 disabled:cursor-not-allowed`}
       >
         {isLoading ? (
           <div className="flex items-center justify-center gap-2">

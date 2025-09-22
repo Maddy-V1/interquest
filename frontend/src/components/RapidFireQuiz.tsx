@@ -39,10 +39,10 @@ interface QuestionResult {
 
 function RapidFireQuiz() {
   const navigate = useNavigate()
-  const [userSession, setUserSession] = useState(authUtils.getUserSession())
+  const [userSession] = useState(authUtils.getUserSession())
   
   // Extract user data for easier access
-  const { firstName, lastName, userId } = userSession || { firstName: '', lastName: '', userId: '' }
+  const { userId } = userSession || { firstName: '', lastName: '', userId: '' }
   
   const [socket, setSocket] = useState<Socket | null>(null)
   const [gameState, setGameState] = useState<'waiting' | 'active' | 'finished'>('waiting')
@@ -240,7 +240,8 @@ function RapidFireQuiz() {
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {approvedParticipants.map((participant, index) => {
                   const isOnline = participants.some(p => p.userId === participant.id)
-                  const onlineParticipant = participants.find(p => p.userId === participant.id)
+                  // Check if participant is online
+                  participants.find(p => p.userId === participant.id)
 
                   return (
                     <div key={participant.id} className="flex items-center justify-between p-2 bg-white rounded-lg">

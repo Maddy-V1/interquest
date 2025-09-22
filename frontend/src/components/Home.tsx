@@ -6,7 +6,7 @@ import BrandingHeader from './BrandingHeader'
 
 function Home() {
   const navigate = useNavigate()
-  const [userSession, setUserSession] = useState(authUtils.getUserSession())
+  const [userSession] = useState(authUtils.getUserSession())
 
   const [userProgress, setUserProgress] = useState({
     completedRounds: [] as number[],
