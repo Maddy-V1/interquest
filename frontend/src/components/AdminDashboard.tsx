@@ -79,7 +79,7 @@ function AdminDashboard() {
         setStats(statsData.stats)
       }
       
-      // Fetch all leaderboards
+      // Fetch all leaderboards directly
       await Promise.all([
         loadRound1Leaderboard(),
         loadRound2Leaderboard(),
@@ -98,12 +98,12 @@ function AdminDashboard() {
     } finally {
       setIsLoading(false)
     }
-  }, [loadRound1Leaderboard, loadRound2Leaderboard, loadRound3Leaderboard])
+  }, []) // Remove dependencies to break circular dependency
 
   // Load dashboard data
   useEffect(() => {
     loadDashboardData()
-  }, [loadDashboardData])
+  }, [])
 
   const handleLogout = () => {
     authUtils.clearAdminSession()
