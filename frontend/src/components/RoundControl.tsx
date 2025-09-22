@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { buildApiUrl } from '../utils/constants'
 
 interface RoundControlProps {
   roundNumber: number
@@ -15,7 +16,7 @@ function RoundControl({ roundNumber, onStatusChange }: RoundControlProps) {
 
   const loadRoundStatus = async () => {
     try {
-      const response = await fetch(`/api/admin/round-status/${roundNumber}`)
+      const response = await fetch(buildApiUrl(`/api/admin/round-status/${roundNumber}`))
       if (response.ok) {
         const data = await response.json()
         setRoundStatus(data.status || 'stopped')
@@ -32,7 +33,7 @@ function RoundControl({ roundNumber, onStatusChange }: RoundControlProps) {
 
       console.log(`Attempting to ${newStatus} Round ${roundNumber}`)
 
-      const response = await fetch(`/api/admin/round-control/${roundNumber}`, {
+      const response = await fetch(buildApiUrl(`/api/admin/round-control/${roundNumber}`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

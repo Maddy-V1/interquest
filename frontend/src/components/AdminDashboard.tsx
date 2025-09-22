@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { authUtils } from '../lib/auth'
 import RoundControl from './RoundControl'
 import BrandingHeader from './BrandingHeader'
+import { buildApiUrl } from '../utils/constants'
 
 function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -34,7 +35,7 @@ function AdminDashboard() {
 
   const loadRound1Leaderboard = useCallback(async () => {
     try {
-      const response = await fetch('/api/leaderboard/round/1?limit=50')
+      const response = await fetch(buildApiUrl('/api/leaderboard/round/1?limit=50'))
       if (response.ok) {
         const data = await response.json()
         setRound1Leaderboard(data.leaderboard || [])
@@ -46,7 +47,7 @@ function AdminDashboard() {
 
   const loadRound2Leaderboard = useCallback(async () => {
     try {
-      const response = await fetch('/api/leaderboard/round/2?limit=50')
+      const response = await fetch(buildApiUrl('/api/leaderboard/round/2?limit=50'))
       if (response.ok) {
         const data = await response.json()
         setRound2Leaderboard(data.leaderboard || [])
@@ -58,7 +59,7 @@ function AdminDashboard() {
 
   const loadRound3Leaderboard = useCallback(async () => {
     try {
-      const response = await fetch('/api/leaderboard/round/3?limit=50')
+      const response = await fetch(buildApiUrl('/api/leaderboard/round/3?limit=50'))
       if (response.ok) {
         const data = await response.json()
         setRound3Leaderboard(data.leaderboard || [])
@@ -73,7 +74,7 @@ function AdminDashboard() {
       setIsLoading(true)
       
       // Fetch admin stats
-      const statsResponse = await fetch('/api/admin/stats')
+      const statsResponse = await fetch(buildApiUrl('/api/admin/stats'))
       if (statsResponse.ok) {
         const statsData = await statsResponse.json()
         setStats(statsData.stats)
@@ -156,7 +157,7 @@ function AdminDashboard() {
         ? { round2_approvals: approvals }
         : { round3_approvals: approvals }
 
-      const response = await fetch('/api/admin/round-approvals', {
+      const response = await fetch(buildApiUrl('/api/admin/round-approvals'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -301,7 +302,7 @@ function AdminDashboard() {
                     return;
                   }
                   
-                  const response = await fetch('/api/admin/start-rapid-fire', { 
+                  const response = await fetch(buildApiUrl('/api/admin/start-rapid-fire'), { 
                     method: 'POST',
                     headers: {
                       'Content-Type': 'application/json'
@@ -352,7 +353,7 @@ function AdminDashboard() {
               
               <button
                 onClick={() => {
-                  fetch('/api/admin/init-database', { method: 'POST' })
+                  fetch(buildApiUrl('/api/admin/init-database'), { method: 'POST' })
                     .then(res => res.json())
                     .then(data => {
                       if (data.success) {
