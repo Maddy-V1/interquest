@@ -20,5 +20,9 @@ export default defineConfig({
         secure: false
       }
     }
+  },
+  define: {
+    // Ensure environment variables are available in production
+    'process.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL)
   }
 })
