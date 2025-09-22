@@ -30,7 +30,7 @@ function ProtectedRoute({ children }: ProtectedRouteProps) {
         return
       }
     }
-  }, [navigate])
+  }, []) // Remove navigate from dependencies as it's stable in React Router v6
 
   return <>{children}</>
 }

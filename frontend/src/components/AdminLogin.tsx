@@ -14,7 +14,7 @@ function AdminLogin() {
     if (authUtils.isAdminLoggedIn()) {
       navigate('/admin/dashboard')
     }
-  }, [navigate])
+  }, []) // Remove navigate from dependencies as it's stable in React Router v6
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault()

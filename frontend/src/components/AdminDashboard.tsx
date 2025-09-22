@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { authUtils } from '../lib/auth'
 import RoundControl from './RoundControl'
@@ -30,14 +30,45 @@ function AdminDashboard() {
       navigate('/admin/login')
       return
     }
-  }, [navigate])
+  }, []) // Remove navigate from dependencies as it's stable in React Router v6
 
-  // Load dashboard data
-  useEffect(() => {
-    loadDashboardData()
+  const loadRound1Leaderboard = useCallback(async () => {
+    try {
+      const response = await fetch('/api/leaderboard/round/1?limit=50')
+      if (response.ok) {
+        const data = await response.json()
+        setRound1Leaderboard(data.leaderboard || [])
+      }
+    } catch (error) {
+      console.error('Error loading Round 1 leaderboard:', error)
+    }
   }, [])
 
-  const loadDashboardData = async () => {
+  const loadRound2Leaderboard = useCallback(async () => {
+    try {
+      const response = await fetch('/api/leaderboard/round/2?limit=50')
+      if (response.ok) {
+        const data = await response.json()
+        setRound2Leaderboard(data.leaderboard || [])
+      }
+    } catch (error) {
+      console.error('Error loading Round 2 leaderboard:', error)
+    }
+  }, [])
+
+  const loadRound3Leaderboard = useCallback(async () => {
+    try {
+      const response = await fetch('/api/leaderboard/round/3?limit=50')
+      if (response.ok) {
+        const data = await response.json()
+        setRound3Leaderboard(data.leaderboard || [])
+      }
+    } catch (error) {
+      console.error('Error loading Round 3 leaderboard:', error)
+    }
+  }, [])
+
+  const loadDashboardData = useCallback(async () => {
     try {
       setIsLoading(true)
       
@@ -67,43 +98,12 @@ function AdminDashboard() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [loadRound1Leaderboard, loadRound2Leaderboard, loadRound3Leaderboard])
 
-  const loadRound1Leaderboard = async () => {
-    try {
-      const response = await fetch('/api/leaderboard/round/1?limit=50')
-      if (response.ok) {
-        const data = await response.json()
-        setRound1Leaderboard(data.leaderboard || [])
-      }
-    } catch (error) {
-      console.error('Error loading Round 1 leaderboard:', error)
-    }
-  }
-
-  const loadRound2Leaderboard = async () => {
-    try {
-      const response = await fetch('/api/leaderboard/round/2?limit=50')
-      if (response.ok) {
-        const data = await response.json()
-        setRound2Leaderboard(data.leaderboard || [])
-      }
-    } catch (error) {
-      console.error('Error loading Round 2 leaderboard:', error)
-    }
-  }
-
-  const loadRound3Leaderboard = async () => {
-    try {
-      const response = await fetch('/api/leaderboard/round/3?limit=50')
-      if (response.ok) {
-        const data = await response.json()
-        setRound3Leaderboard(data.leaderboard || [])
-      }
-    } catch (error) {
-      console.error('Error loading Round 3 leaderboard:', error)
-    }
-  }
+  // Load dashboard data
+  useEffect(() => {
+    loadDashboardData()
+  }, [loadDashboardData])
 
   const handleLogout = () => {
     authUtils.clearAdminSession()

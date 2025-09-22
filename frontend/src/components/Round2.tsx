@@ -13,6 +13,8 @@ function Round2() {
   const location = useLocation()
   const navigate = useNavigate()
   const [userSession, setUserSession] = useState(authUtils.getUserSession())
+  
+  // Extract user data for easier access
   const { firstName, lastName, userId } = (location.state as LocationState) || userSession || { 
     firstName: '', 
     lastName: '', 
@@ -33,7 +35,7 @@ function Round2() {
     }
     checkRoundCompletion()
     fetchRoundQuestions()
-  }, [firstName, lastName, userId, navigate])
+  }, [firstName, lastName, userId]) // Remove navigate from dependencies as it's stable in React Router v6
 
   const checkRoundCompletion = async () => {
     try {

@@ -45,7 +45,7 @@ function QuestionManagement() {
       navigate('/admin/login')
       return
     }
-  }, [navigate])
+  }, []) // Remove navigate from dependencies as it's stable in React Router v6
 
   // Load questions when round changes
   useEffect(() => {

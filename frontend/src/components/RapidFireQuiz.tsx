@@ -40,6 +40,10 @@ interface QuestionResult {
 function RapidFireQuiz() {
   const navigate = useNavigate()
   const [userSession, setUserSession] = useState(authUtils.getUserSession())
+  
+  // Extract user data for easier access
+  const { firstName, lastName, userId } = userSession || { firstName: '', lastName: '', userId: '' }
+  
   const [socket, setSocket] = useState<Socket | null>(null)
   const [gameState, setGameState] = useState<'waiting' | 'active' | 'finished'>('waiting')
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null)
@@ -55,8 +59,6 @@ function RapidFireQuiz() {
   const [questionLocked, setQuestionLocked] = useState(false)
   const [approvedParticipants, setApprovedParticipants] = useState<{ id: string, name: string }[]>([])
   const socketRef = useRef<Socket | null>(null)
-
-  const { firstName, lastName, userId } = userSession || { firstName: '', lastName: '', userId: '' }
 
   useEffect(() => {
     if (!userSession?.userId) {

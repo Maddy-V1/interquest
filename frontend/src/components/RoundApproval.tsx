@@ -25,7 +25,7 @@ function RoundApproval() {
       navigate('/admin/login')
       return
     }
-  }, [navigate])
+  }, []) // Remove navigate from dependencies as it's stable in React Router v6
 
   useEffect(() => {
     loadUsers()
@@ -90,8 +90,7 @@ function RoundApproval() {
 
       if (response.ok) {
         setSuccess('Round approvals updated successfully!')
-        // Reload users to get updated data
-        loadUsers()
+        // No need to reload users - approvals are already updated in state
       } else {
         const errorData = await response.json()
         setError(errorData.message || 'Failed to save approvals')

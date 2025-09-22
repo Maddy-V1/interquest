@@ -16,6 +16,9 @@ function Round1() {
   const [roundStatus, setRoundStatus] = useState<'active' | 'stopped'>('stopped')
   const [statusLoading, setStatusLoading] = useState(true)
 
+  // Extract userId for easier access
+  const { firstName, lastName, userId } = userSession || { firstName: '', lastName: '', userId: '' }
+
   // Redirect to login if no user session
   useEffect(() => {
     if (!userSession?.userId) {
@@ -25,7 +28,7 @@ function Round1() {
     checkRoundCompletion()
     fetchRoundQuestions()
     checkRoundStatus()
-  }, [userSession, navigate])
+  }, [userSession?.userId]) // Remove navigate from dependencies as it's stable in React Router v6
 
   const checkRoundCompletion = async () => {
     try {
@@ -80,8 +83,6 @@ function Round1() {
       setStatusLoading(false)
     }
   }
-
-  const { firstName, lastName, userId } = userSession || { firstName: '', lastName: '', userId: '' }
 
   const handleStartRound1 = async () => {
     // Check if round is active

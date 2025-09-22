@@ -27,7 +27,7 @@ function UserProtectedRoute({ children, requireAdmin = false }: UserProtectedRou
         return
       }
     }
-  }, [navigate, requireAdmin])
+  }, [requireAdmin]) // Remove navigate from dependencies as it's stable in React Router v6
 
   // If we reach here, user is authenticated
   return <>{children}</>
