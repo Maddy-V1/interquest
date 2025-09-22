@@ -192,7 +192,7 @@ function Round2() {
               </div>
               
               <div className="bg-white border-2 border-teal-200 p-6 rounded-xl">
-                <div className="text-3xl font-bold text-teal-600 mb-2">7</div>
+                <div className="text-3xl font-bold text-teal-600 mb-2">8</div>
                 <div className="text-gray-700 font-semibold">Minutes</div>
                 <div className="text-sm text-gray-500 mt-1">Time Limit</div>
               </div>

@@ -43,7 +43,7 @@ function Quiz({ roundNumber }: QuizProps) {
   const [selectedAnswer, setSelectedAnswer] = useState<'A' | 'B' | 'C' | 'D' | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [timeRemaining, setTimeRemaining] = useState(300) // 5 minutes in seconds
+  const [timeRemaining, setTimeRemaining] = useState(480) // 8 minutes in seconds
   const [quizCompleted, setQuizCompleted] = useState(false)
 
   // Redirect to login if no user session or session ID
