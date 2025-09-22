@@ -2,6 +2,29 @@ const { supabase } = require('../config/supabase')
 
 class UserService {
   /**
+   * Get user by ID
+   */
+  static async getUserById(userId) {
+    try {
+      const { data: user, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single()
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching user by ID:', error)
+        throw new Error('Failed to fetch user')
+      }
+
+      return user
+    } catch (error) {
+      console.error('UserService.getUserById error:', error)
+      throw error
+    }
+  }
+
+  /**
    * Create or update a user in the database
    */
   static async createOrUpdateUser(firstName, lastName) {

@@ -35,7 +35,7 @@ function Home() {
       setIsLoading(true)
       const progress = await UserService.getUserProgress(userId)
       setUserProgress(progress)
-      
+
       // Load user approval status
       const response = await fetch(`/api/users/${userId}`)
       if (response.ok) {
@@ -58,7 +58,7 @@ function Home() {
     try {
       // Check if user can access this round
       const canAccess = await UserService.canAccessRound(userId, roundNumber)
-      
+
       if (!canAccess) {
         alert(`You need to complete Round ${roundNumber - 1} first!`)
         return
@@ -78,22 +78,22 @@ function Home() {
   }
 
   const roundInfo = {
-    1: { 
-      name: 'General Knowledge', 
+    1: {
+      name: 'General Knowledge',
       description: 'Test your basic knowledge across various topics',
       points: 100,
       color: 'blue',
       gradient: 'from-blue-500 to-blue-600'
     },
-    2: { 
-      name: 'Science & Technology', 
+    2: {
+      name: 'Science & Technology',
       description: 'Advanced questions about science and technology',
       points: 150,
       color: 'green',
       gradient: 'from-green-500 to-green-600'
     },
-    3: { 
-      name: 'Advanced Knowledge', 
+    3: {
+      name: 'Advanced Knowledge',
       description: 'Expert-level questions for the ultimate challenge',
       points: 200,
       color: 'purple',
@@ -116,10 +116,10 @@ function Home() {
     <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <BrandingHeader 
+        <BrandingHeader
           subtitle={`Welcome back, ${firstName} ${lastName}!`}
         />
-        
+
         {/* Progress Card */}
         <div className="bg-white rounded-2xl shadow-2xl p-6 mb-8">
           <div className="flex justify-between items-center">
@@ -172,24 +172,22 @@ function Home() {
             return (
               <div
                 key={round}
-                className={`bg-white rounded-2xl shadow-2xl p-8 transition-all duration-300 ${
-                  isLocked || needsApproval
-                    ? 'opacity-50 cursor-not-allowed' 
-                    : 'hover:shadow-3xl hover:-translate-y-2 cursor-pointer'
-                }`}
+                className={`bg-white rounded-2xl shadow-2xl p-8 transition-all duration-300 ${isLocked || needsApproval
+                  ? 'opacity-50 cursor-not-allowed'
+                  : 'hover:shadow-3xl hover:-translate-y-2 cursor-pointer'
+                  }`}
                 onClick={() => !isLocked && !needsApproval && handleRoundClick(round)}
               >
                 <div className="text-center">
                   {/* Round Status Icon */}
-                  <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
-                    isCompleted 
-                      ? 'bg-green-100' 
-                      : needsApproval
-                        ? 'bg-yellow-100'
-                        : isLocked 
-                          ? 'bg-gray-100' 
-                          : `bg-${roundData.color}-100`
-                  }`}>
+                  <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${isCompleted
+                    ? 'bg-green-100'
+                    : needsApproval
+                      ? 'bg-yellow-100'
+                      : isLocked
+                        ? 'bg-gray-100'
+                        : `bg-${roundData.color}-100`
+                    }`}>
                     {isCompleted ? (
                       <svg className="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -209,33 +207,29 @@ function Home() {
                     )}
                   </div>
 
-                  <h3 className={`text-2xl font-bold mb-2 ${
-                    isCompleted ? 'text-green-600' : needsApproval ? 'text-yellow-600' : isLocked ? 'text-gray-400' : 'text-gray-900'
-                  }`}>
+                  <h3 className={`text-2xl font-bold mb-2 ${isCompleted ? 'text-green-600' : needsApproval ? 'text-yellow-600' : isLocked ? 'text-gray-400' : 'text-gray-900'
+                    }`}>
                     Round {round}
                   </h3>
-                  
-                  <h4 className={`text-lg font-semibold mb-2 ${
-                    isCompleted ? 'text-green-600' : needsApproval ? 'text-yellow-600' : isLocked ? 'text-gray-400' : 'text-gray-700'
-                  }`}>
+
+                  <h4 className={`text-lg font-semibold mb-2 ${isCompleted ? 'text-green-600' : needsApproval ? 'text-yellow-600' : isLocked ? 'text-gray-400' : 'text-gray-700'
+                    }`}>
                     {roundData.name}
                   </h4>
-                  
-                  <p className={`text-sm mb-4 ${
-                    isLocked || needsApproval ? 'text-gray-400' : 'text-gray-600'
-                  }`}>
+
+                  <p className={`text-sm mb-4 ${isLocked || needsApproval ? 'text-gray-400' : 'text-gray-600'
+                    }`}>
                     {needsApproval ? 'Pending admin approval' : roundData.description}
                   </p>
-                  
-                  <div className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${
-                    isCompleted 
-                      ? 'bg-green-100 text-green-800' 
-                      : needsApproval
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : isLocked 
-                          ? 'bg-gray-100 text-gray-500' 
-                          : `bg-${roundData.color}-100 text-${roundData.color}-800`
-                  }`}>
+
+                  <div className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${isCompleted
+                    ? 'bg-green-100 text-green-800'
+                    : needsApproval
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : isLocked
+                        ? 'bg-gray-100 text-gray-500'
+                        : `bg-${roundData.color}-100 text-${roundData.color}-800`
+                    }`}>
                     {isCompleted ? 'Completed' : needsApproval ? 'Pending Approval' : isLocked ? 'Locked' : '1 point per question'}
                   </div>
 

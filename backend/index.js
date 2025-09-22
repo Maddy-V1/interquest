@@ -23,14 +23,34 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(express.json({ limit: '10mb' }));
+
+// Enhanced CORS configuration with debugging
 app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'https://interquest-omega.vercel.app',
-    process.env.FRONTEND_URL
-  ].filter(Boolean),
-  credentials: true
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'https://interquest-omega.vercel.app',
+      process.env.FRONTEND_URL
+    ].filter(Boolean);
+    
+    console.log('CORS Check - Origin:', origin);
+    console.log('CORS Check - Allowed Origins:', allowedOrigins);
+    
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      console.log('CORS BLOCKED - Origin not allowed:', origin);
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  optionsSuccessStatus: 200
 }));
 
 // Error handling middleware
@@ -261,6 +281,15 @@ app.get('/', (req, res) => {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// CORS test endpoint
+app.get('/api/cors-test', (req, res) => {
+  res.json({
+    message: 'CORS is working!',
+    origin: req.headers.origin,
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -500,6 +529,32 @@ app.get('/api/leaderboard/round/:roundNumber', async (req, res) => {
     console.error('GET /api/leaderboard/round/:roundNumber error:', error);
     res.status(500).json({
       error: 'Failed to fetch round leaderboard',
+      message: error.message
+    });
+  }
+});
+
+// Get user by ID
+app.get('/api/users/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await UserService.getUserById(id);
+
+    if (!user) {
+      return res.status(404).json({
+        error: 'User not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      user,
+      message: 'User fetched successfully'
+    });
+  } catch (error) {
+    console.error('GET /api/users/:id error:', error);
+    res.status(500).json({
+      error: 'Failed to fetch user',
       message: error.message
     });
   }
@@ -1746,6 +1801,14 @@ const initializeRapidFire = async () => {
 server.listen(PORT, async () => {
   console.log(`🚀 InterQuest Server running on port ${PORT}`);
   console.log(`📡 Socket.IO enabled for rapid fire functionality`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔗 Frontend URL: ${process.env.FRONTEND_URL}`);
+  console.log(`🔒 CORS Origins:`, [
+    'http://localhost:5173',
+    'http://localhost:3000', 
+    'https://interquest-omega.vercel.app',
+    process.env.FRONTEND_URL
+  ].filter(Boolean));
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`📊 Available endpoints:`);
   console.log(`   GET / - Health check`);
