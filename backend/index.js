@@ -10,18 +10,35 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: ["http://localhost:5173", "http://localhost:3000"],
+    origin: [
+      "http://localhost:5173", 
+      "http://localhost:3000",
+      process.env.FRONTEND_URL || "https://your-frontend-domain.com"
+    ],
     methods: ["GET", "POST"]
   }
 });
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'], // Add your frontend URLs
+  origin: [
+    'http://localhost:5173', 
+    'http://localhost:3000',
+    process.env.FRONTEND_URL || 'https://your-frontend-domain.com'
+  ],
   credentials: true
 }));
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ 
+    error: 'Internal server error',
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
+  });
+});
 
 // Rapid Fire Game State
 let gameState = {
@@ -237,7 +254,21 @@ const endGame = () => {
 
 // Basic route
 app.get('/', (req, res) => {
-  res.json({ message: 'InterQuest API Server' });
+  res.json({ 
+    message: 'InterQuest API Server',
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
 });
 
 // User routes
@@ -1711,9 +1742,12 @@ const initializeRapidFire = async () => {
 
 // Start server with Socket.IO
 server.listen(PORT, async () => {
-  console.log(`🚀 InterQuest Server running on http://localhost:${PORT}`);
+  console.log(`🚀 InterQuest Server running on port ${PORT}`);
   console.log(`📡 Socket.IO enabled for rapid fire functionality`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`📊 Available endpoints:`);
+  console.log(`   GET / - Health check`);
+  console.log(`   GET /health - Detailed health status`);
   console.log(`   POST /api/users - Create/update user`);
   console.log(`   POST /api/quiz-sessions - Create quiz session`);
   console.log(`   PUT /api/quiz-sessions/:id - Update quiz session`);
@@ -1735,10 +1769,17 @@ server.listen(PORT, async () => {
   console.log(`   GET /api/admin/rapid-fire-status - Get rapid fire status`);
   console.log(`🎯 Supported rounds: 1, 2, 3`);
   console.log(`🔐 Admin credentials stored in environment variables`);
-  console.log(`⚠️  Note: Backend running on port ${PORT} to avoid conflicts`);
   
-  // Initialize rapid fire functionality
-  await initializeRapidFire();
-  console.log(`📊 Loaded ${round3Questions.length} questions for Round 3`);
-  console.log(`👥 Loaded ${approvedParticipants.length} approved participants`);
+  try {
+    // Initialize rapid fire functionality
+    await initializeRapidFire();
+    console.log(`📊 Loaded ${round3Questions.length} questions for Round 3`);
+    console.log(`👥 Loaded ${approvedParticipants.length} approved participants`);
+    console.log(`✅ Server initialization complete`);
+  } catch (error) {
+    console.error('❌ Error during server initialization:', error);
+  }
+}).on('error', (err) => {
+  console.error('❌ Server failed to start:', err);
+  process.exit(1);
 });
