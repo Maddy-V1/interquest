@@ -175,18 +175,7 @@ function Quiz({ roundNumber }: QuizProps) {
       setIsSubmitting(true)
       setQuizCompleted(true)
 
-      // Check round status before submission (only for Round 1)
-      if (roundNumber === 1) {
-        const statusResponse = await fetch('/api/admin/round-status/1')
-        if (statusResponse.ok) {
-          const statusData = await statusResponse.json()
-          if (statusData.status !== 'active') {
-            alert('Time Over! Round 1 has been stopped by admin.')
-            navigate('/home')
-            return
-          }
-        }
-      }
+      // Round 1 is always available - removed admin status check
 
       // Calculate score (1 point per correct answer)
       const correctAnswers = answers.filter(a => a.isCorrect).length
