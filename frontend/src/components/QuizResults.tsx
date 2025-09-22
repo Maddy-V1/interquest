@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { authUtils } from '../lib/auth'
 import Leaderboard from './Leaderboard'
+import BrandingHeader from './BrandingHeader'
 
 interface LocationState {
   roundNumber: number
@@ -134,26 +135,16 @@ function QuizResults() {
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${roundInfo.bgGradient} p-8`}>
-      <div className="max-w-4xl mx-auto">
+    <div className={`min-h-screen bg-gradient-to-br ${roundInfo.bgGradient} p-4 lg:p-8`}>
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-2xl shadow-2xl p-8 mb-8">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-4xl font-bold text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text">
-                InterQuest
-              </h1>
-              <p className="text-gray-600 mt-2">
-                {firstName} {lastName} - Round {roundNumber} Results
-              </p>
-            </div>
-            <div className="text-right">
-              <div className={`bg-gradient-to-r ${roundInfo.gradient} text-white px-6 py-3 rounded-full font-semibold`}>
-                Round {roundNumber} Complete
-              </div>
-            </div>
-          </div>
-        </div>
+        <BrandingHeader 
+          subtitle={`${firstName} ${lastName} - Round ${roundNumber} Results`}
+        />
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Results Content */}
+          <div className="lg:col-span-2">
 
         {/* Results Card */}
         <div className="bg-white rounded-2xl shadow-2xl p-8 mb-8">
@@ -269,26 +260,30 @@ function QuizResults() {
           </div>
         </div>
 
-        {/* Leaderboard */}
-        <Leaderboard 
-          roundNumber={roundNumber} 
-          currentUserId={userId}
-          title={`Round ${roundNumber} Leaderboard`}
-          className="mb-8"
-        />
-
-        {/* Achievement Badge */}
-        <div className="bg-white rounded-2xl shadow-2xl p-8 text-center">
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">Achievement Unlocked!</h3>
-          <div className="text-6xl mb-4">🎯</div>
-          <p className="text-lg text-gray-600 mb-4">
-            You've successfully completed Round {roundNumber} of InterQuest!
-          </p>
-          {roundNumber < 3 && (
-            <p className="text-sm text-gray-500">
-              Round {roundNumber + 1} is now available for you to attempt.
-            </p>
-          )}
+            {/* Achievement Badge */}
+            <div className="bg-white rounded-2xl shadow-2xl p-8 text-center">
+              <h3 className="text-2xl font-bold text-gray-800 mb-4">Achievement Unlocked!</h3>
+              <div className="text-6xl mb-4">🎯</div>
+              <p className="text-lg text-gray-600 mb-4">
+                You've successfully completed Round {roundNumber} of InterQuest!
+              </p>
+              {roundNumber < 3 && (
+                <p className="text-sm text-gray-500">
+                  Round {roundNumber + 1} is now available for you to attempt.
+                </p>
+              )}
+            </div>
+          </div>
+          
+          {/* Sidebar Leaderboard */}
+          <div className="lg:col-span-1">
+            <Leaderboard 
+              roundNumber={roundNumber} 
+              currentUserId={userId}
+              title={`Round ${roundNumber} Leaderboard`}
+              className="sticky top-4"
+            />
+          </div>
         </div>
       </div>
     </div>

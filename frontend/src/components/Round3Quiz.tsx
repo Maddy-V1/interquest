@@ -1,7 +1,7 @@
-import Quiz from './Quiz'
+import RapidFireQuiz from './RapidFireQuiz'
 
 function Round3Quiz() {
-  return <Quiz roundNumber={3} />
+  return <RapidFireQuiz />
 }
 
 export default Round3Quiz

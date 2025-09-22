@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import UserService from '../lib/userService'
 import { authUtils } from '../lib/auth'
+import { supabase } from '../lib/supabase'
 
 interface LocationState {
   firstName: string
@@ -24,6 +25,8 @@ function Round3() {
   const [roundScore, setRoundScore] = useState(0)
   const [roundQuestions, setRoundQuestions] = useState<any[]>([])
   const [questionsLoading, setQuestionsLoading] = useState(true)
+  const [isApproved, setIsApproved] = useState(false)
+  const [rapidFireActive, setRapidFireActive] = useState(false)
 
   // Redirect to login if no user data
   useEffect(() => {
@@ -33,6 +36,30 @@ function Round3() {
     }
     checkRoundCompletion()
     fetchRoundQuestions()
+    checkRound3Approval()
+    checkRapidFireStatus()
+    
+    // Set up realtime subscription for rapid fire notifications
+    const channel = supabase
+      .channel('rapid_fire_notifications')
+      .on('postgres_changes', 
+        { event: 'INSERT', schema: 'public', table: 'notifications' },
+        (payload) => {
+          if (payload.new.type === 'rapid_fire_started' && 
+              payload.new.target_users?.includes(userId)) {
+            setRapidFireActive(true)
+            // Auto-redirect to rapid fire after 3 seconds
+            setTimeout(() => {
+              navigate('/rapid-fire')
+            }, 3000)
+          }
+        }
+      )
+      .subscribe()
+    
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [firstName, lastName, userId, navigate])
 
   const checkRoundCompletion = async () => {
@@ -74,11 +101,46 @@ function Round3() {
     }
   }
 
+  const checkRound3Approval = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('round3_approved')
+        .eq('id', userId)
+        .single()
+      
+      if (!error && data) {
+        setIsApproved(data.round3_approved || false)
+      }
+    } catch (error) {
+      console.error('Error checking Round 3 approval:', error)
+    }
+  }
+
+  const checkRapidFireStatus = async () => {
+    try {
+      const response = await fetch('/api/admin/rapid-fire-status')
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.gameState.status === 'active') {
+          setRapidFireActive(true)
+        }
+      }
+    } catch (error) {
+      console.error('Error checking rapid fire status:', error)
+    }
+  }
+
   if (!firstName || !lastName || !userId) {
     return null
   }
 
   const handleStartRound3 = async () => {
+    if (rapidFireActive) {
+      navigate('/rapid-fire')
+      return
+    }
+    
     try {
       setIsLoading(true)
       
@@ -216,6 +278,37 @@ function Round3() {
             </div>
           </div>
           
+          {/* Status Messages */}
+          {!isApproved && (
+            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-6 mb-6">
+              <div className="flex items-center justify-center gap-3">
+                <div className="bg-yellow-500 text-white p-3 rounded-full">
+                  <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-yellow-800">Waiting for Approval</h3>
+                  <p className="text-yellow-600">You need to be approved by admin to participate in Round 3</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {rapidFireActive && isApproved && (
+            <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-6 mb-6">
+              <div className="flex items-center justify-center gap-3">
+                <div className="bg-purple-500 text-white p-3 rounded-full animate-pulse">
+                  <span className="text-2xl">⚡</span>
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-purple-800">Rapid Fire Active!</h3>
+                  <p className="text-purple-600">Round 3 Rapid Fire is now live. Join the competition!</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Start Button or See Results */}
           {isCompleted ? (
             <div className="space-y-4">
@@ -241,7 +334,7 @@ function Round3() {
                 <span className="ml-2">📊</span>
               </button>
             </div>
-          ) : (
+          ) : isApproved ? (
             <button 
               onClick={handleStartRound3}
               disabled={isLoading}
@@ -255,13 +348,22 @@ function Round3() {
                 </svg>
                 <span>Starting Quiz...</span>
               </div>
-            ) : (
-              <>
-                Start Round 3
-                <span className="ml-2">→</span>
-              </>
-            )}
+              ) : rapidFireActive ? (
+                <>
+                  Join Rapid Fire ⚡
+                  <span className="ml-2">→</span>
+                </>
+              ) : (
+                <>
+                  Start Round 3
+                  <span className="ml-2">→</span>
+                </>
+              )}
             </button>
+          ) : (
+            <div className="text-center text-gray-500">
+              <p>Please wait for admin approval to participate in Round 3</p>
+            </div>
           )}
         </div>
       </div>

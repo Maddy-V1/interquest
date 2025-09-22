@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import UserService from '../lib/userService'
 import { authUtils } from '../lib/auth'
+import BrandingHeader from './BrandingHeader'
 
 function Home() {
   const navigate = useNavigate()
@@ -115,25 +116,24 @@ function Home() {
     <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-2xl shadow-2xl p-8 mb-8">
+        <BrandingHeader 
+          subtitle={`Welcome back, ${firstName} ${lastName}!`}
+        />
+        
+        {/* Progress Card */}
+        <div className="bg-white rounded-2xl shadow-2xl p-6 mb-8">
           <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-4xl font-bold text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text">
-                InterQuest
-              </h1>
-              <p className="text-gray-600 mt-2 text-lg">
-                Welcome back, {firstName} {lastName}!
-              </p>
-            </div>
-            <div className="text-right">
-              <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-3 rounded-full font-semibold mb-2">
+            <div className="flex items-center gap-4">
+              <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-3 rounded-full font-semibold">
                 Your Progress
               </div>
-              <div className="text-sm text-gray-600">
-                {userProgress.completedRounds.length} of 3 rounds completed
-              </div>
-              <div className="text-sm text-gray-600">
-                Total Score: {userProgress.totalScore}
+              <div className="text-gray-600">
+                <div className="text-sm">
+                  {userProgress.completedRounds.length} of 3 rounds completed
+                </div>
+                <div className="text-sm">
+                  Total Score: {userProgress.totalScore}
+                </div>
               </div>
             </div>
           </div>

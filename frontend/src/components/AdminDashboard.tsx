@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { authUtils } from '../lib/auth'
+import RoundControl from './RoundControl'
+import BrandingHeader from './BrandingHeader'
 
 function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -210,29 +212,21 @@ function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
-      <header className="bg-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white p-2 rounded-lg mr-3">
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">InterQuest Admin</h1>
-                <p className="text-sm text-gray-500">Dashboard & Control Panel</p>
-              </div>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
-            >
-              Logout
-            </button>
-          </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <BrandingHeader 
+          title="InterQuest Admin"
+          subtitle="Dashboard & Control Panel"
+        />
+        
+        <div className="flex justify-end mb-6">
+          <button
+            onClick={handleLogout}
+            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
+          >
+            Logout
+          </button>
         </div>
-      </header>
+      </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
@@ -281,7 +275,57 @@ function AdminDashboard() {
         </div>
 
         {/* Round Control & Stats */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          {/* Round 1 Control */}
+          <RoundControl roundNumber={1} />
+          
+          {/* Rapid Fire Control */}
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-gray-900">Round 3 - Rapid Fire</h3>
+              <div className="px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                ⚡ Live Mode
+              </div>
+            </div>
+            
+            <p className="text-gray-600 mb-4">
+              Real-time competitive quiz for Round 3 participants.
+            </p>
+            
+            <button
+              onClick={async () => {
+                try {
+                  // Check if there are approved Round 3 participants
+                  if (round3Leaderboard.length === 0) {
+                    alert('No participants approved for Round 3. Please approve participants first.');
+                    return;
+                  }
+                  
+                  const response = await fetch('/api/admin/start-rapid-fire', { 
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json'
+                    }
+                  });
+                  
+                  const data = await response.json();
+                  
+                  if (data.success) {
+                    alert(`Rapid Fire started! ${round3Leaderboard.length} participants will be notified.`);
+                  } else {
+                    alert(data.error || 'Failed to start rapid fire');
+                  }
+                } catch (err) {
+                  console.error('Rapid fire error:', err);
+                  alert('Error starting rapid fire. Please try again.');
+                }
+              }}
+              className="w-full bg-purple-500 text-white px-4 py-3 rounded-lg font-semibold hover:bg-purple-600 transition-colors"
+            >
+              Start Rapid Fire ({round3Leaderboard.length} participants)
+            </button>
+          </div>
+          
           {/* Quick Actions */}
           <div className="bg-white rounded-xl shadow-lg p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-6">Quick Actions</h2>
@@ -299,6 +343,38 @@ function AdminDashboard() {
                   <div className="text-left">
                     <h3 className="font-semibold text-gray-900">Manage Questions</h3>
                     <p className="text-sm text-gray-500">Add, edit, and delete quiz questions</p>
+                  </div>
+                </div>
+                <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                </svg>
+              </button>
+              
+              <button
+                onClick={() => {
+                  fetch('/api/admin/init-database', { method: 'POST' })
+                    .then(res => res.json())
+                    .then(data => {
+                      if (data.success) {
+                        alert('Database initialized successfully!')
+                        window.location.reload()
+                      } else {
+                        alert('Failed to initialize database: ' + data.error)
+                      }
+                    })
+                    .catch(err => alert('Error initializing database: ' + err.message))
+                }}
+                className="w-full flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all duration-200"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="bg-green-100 p-2 rounded-lg">
+                    <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-semibold text-gray-900">Initialize Database</h3>
+                    <p className="text-sm text-gray-500">Create required tables if missing</p>
                   </div>
                 </div>
                 <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">

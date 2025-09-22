@@ -7,6 +7,7 @@ import Round3 from './components/Round3'
 import Round1Quiz from './components/Round1Quiz'
 import Round2Quiz from './components/Round2Quiz'
 import Round3Quiz from './components/Round3Quiz'
+import RapidFireQuiz from './components/RapidFireQuiz'
 import QuizResults from './components/QuizResults'
 import AdminLogin from './components/AdminLogin'
 import AdminDashboard from './components/AdminDashboard'
@@ -28,6 +29,7 @@ function App() {
         <Route path="/round1-quiz" element={<UserProtectedRoute><Round1Quiz /></UserProtectedRoute>} />
         <Route path="/round2-quiz" element={<UserProtectedRoute><Round2Quiz /></UserProtectedRoute>} />
         <Route path="/round3-quiz" element={<UserProtectedRoute><Round3Quiz /></UserProtectedRoute>} />
+        <Route path="/rapid-fire" element={<UserProtectedRoute><RapidFireQuiz /></UserProtectedRoute>} />
         <Route path="/quiz-results" element={<UserProtectedRoute><QuizResults /></UserProtectedRoute>} />
         
         {/* Admin Routes */}
