@@ -74,20 +74,20 @@ function Round1() {
     // Round 1 is always available - no admin check needed
     try {
       setIsLoading(true)
-      
+
       // Create a quiz session for Round 1
       const session = await UserService.createQuizSession(userId, 1)
-      
+
       if (!session) {
         alert('Failed to create quiz session. Please try again.')
         return
       }
 
       // Navigate to quiz with session ID
-      navigate('/round1-quiz', { 
-        state: { 
+      navigate('/round1-quiz', {
+        state: {
           sessionId: session.id
-        } 
+        }
       })
     } catch (error) {
       console.error('Error starting quiz:', error)
@@ -149,7 +149,7 @@ function Round1() {
           <h2 className="text-6xl font-bold text-transparent bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text mb-8">
             ROUND 1
           </h2>
-          
+
           <div className="space-y-6 mb-12">
             <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-xl">
               <h3 className="text-2xl font-semibold text-gray-800 mb-4">
@@ -159,7 +159,7 @@ function Round1() {
                 Test your knowledge with 5 carefully selected questions covering various topics including geography, science, history, and current affairs.
               </p>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-white border-2 border-blue-200 p-6 rounded-xl">
                 <div className="text-3xl font-bold text-blue-600 mb-2">
@@ -168,7 +168,7 @@ function Round1() {
                 <div className="text-gray-700 font-semibold">Questions</div>
                 <div className="text-sm text-gray-500 mt-1">Multiple Choice</div>
               </div>
-              
+
               <div className="bg-white border-2 border-green-200 p-6 rounded-xl">
                 <div className="text-3xl font-bold text-green-600 mb-2">
                   {questionsLoading ? '...' : roundQuestions.length > 0 ? roundQuestions[0].points : 1}
@@ -178,14 +178,14 @@ function Round1() {
                   Maximum Score: {questionsLoading ? '...' : roundQuestions.length * (roundQuestions.length > 0 ? roundQuestions[0].points : 1)}
                 </div>
               </div>
-              
+
               <div className="bg-white border-2 border-purple-200 p-6 rounded-xl">
                 <div className="text-3xl font-bold text-purple-600 mb-2">5</div>
                 <div className="text-gray-700 font-semibold">Minutes</div>
                 <div className="text-sm text-gray-500 mt-1">Time Limit</div>
               </div>
             </div>
-            
+
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-r-xl">
               <div className="flex items-start">
                 <div className="text-yellow-600 mr-3">
@@ -205,58 +205,58 @@ function Round1() {
               </div>
             </div>
           </div>
-          
-              {/* Start Button or See Results */}
-              {isCompleted ? (
-                <div className="space-y-4">
-                  <div className="bg-green-50 border-2 border-green-200 rounded-xl p-6 mb-6">
-                    <div className="flex items-center justify-center gap-3 mb-4">
-                      <div className="bg-green-500 text-white p-3 rounded-full">
-                        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                      <div>
-                        <h3 className="text-2xl font-bold text-green-800">Round 1 Completed!</h3>
-                        <p className="text-green-600">Your Score: {roundScore} points</p>
-                      </div>
-                    </div>
+
+          {/* Start Button or See Results */}
+          {isCompleted ? (
+            <div className="space-y-4">
+              <div className="bg-green-50 border-2 border-green-200 rounded-xl p-6 mb-6">
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <div className="bg-green-500 text-white p-3 rounded-full">
+                    <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
                   </div>
-                  
-                  <button
-                    onClick={handleSeeResults}
-                    className="bg-gradient-to-r from-green-500 to-blue-600 text-white px-12 py-4 rounded-xl text-xl font-bold hover:-translate-y-1 hover:shadow-2xl hover:shadow-green-500/30 transition-all duration-300 transform"
-                  >
-                    See Results & Leaderboard
-                    <span className="ml-2">📊</span>
-                  </button>
+                  <div>
+                    <h3 className="text-2xl font-bold text-green-800">Round 1 Completed!</h3>
+                    <p className="text-green-600">Your Score: {roundScore} points</p>
+                  </div>
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  {/* Round 1 is always available - removed admin check message */}
-                  
-                  <button
-                    onClick={handleStartRound1}
-                    disabled={isLoading}
-                    className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-12 py-4 rounded-xl text-xl font-bold hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-500/30 transition-all duration-300 transform disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                  >
-                    {isLoading ? (
-                      <div className="flex items-center justify-center gap-2">
-                        <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        <span>Starting Quiz...</span>
-                      </div>
-                    ) : (
-                      <>
-                        Start Round 1
-                        <span className="ml-2">→</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              )}
+              </div>
+
+              <button
+                onClick={handleSeeResults}
+                className="bg-gradient-to-r from-green-500 to-blue-600 text-white px-12 py-4 rounded-xl text-xl font-bold hover:-translate-y-1 hover:shadow-2xl hover:shadow-green-500/30 transition-all duration-300 transform"
+              >
+                See Results & Leaderboard
+                <span className="ml-2">📊</span>
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Round 1 is always available - removed admin check message */}
+
+              <button
+                onClick={handleStartRound1}
+                disabled={isLoading}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-12 py-4 rounded-xl text-xl font-bold hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-500/30 transition-all duration-300 transform disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              >
+                {isLoading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Starting Quiz...</span>
+                  </div>
+                ) : (
+                  <>
+                    Start Round 1
+                    <span className="ml-2">→</span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
