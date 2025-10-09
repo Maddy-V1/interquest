@@ -14,7 +14,7 @@ A comprehensive quiz application featuring three progressive rounds with real-ti
 - **Round 2**: Science & Technology Quiz (150 points per question) 
 - **Round 3**: Advanced Knowledge Rapid-Fire Competition (200 points per question)
 
-### 👨‍💼 Admin Dashboard
+### 👨‍💼 Admin Dashboard ( /admin )
 - Start/Stop quiz rounds
 - User approval system for Round 2 & 3
 - Real-time leaderboard monitoring
@@ -69,7 +69,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=your_admin_password
 PORT=3000
-RAPIDFIRE_PORT=3001
+RAPIDFIRE_PORT=3001 (round 3 not working properly)
 ```
 
 ### 4. Installation & Running
@@ -88,7 +88,7 @@ npm install
 npm run dev
 ```
 
-#### Rapid Fire Server (Terminal 3)
+#### Rapid Fire Server (Terminal 3)  (not working properly)
 ```bash
 cd backend
 node rapidfire-server.js
@@ -296,13 +296,6 @@ cd backend
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 👥 Authors
-
-- **Your Name** - *Initial work* - [YourGitHub](https://github.com/yourusername)
 
 ## 🙏 Acknowledgments
 
